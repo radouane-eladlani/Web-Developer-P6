@@ -119,7 +119,6 @@ function incrementLikeOuDisLike(sauce, userId, like) {
 /* on cree une fonction pour que si l'utilisateur veut 
 annuler son vote c'est a dire le like ou le dislike*/
 function resetLike(sauce, userId,res) {
-    console.log ("reset like",sauce)
     const usersLiked = sauce.usersLiked
     const usersDisliked = sauce.usersDisliked
 
@@ -136,7 +135,7 @@ function resetLike(sauce, userId,res) {
         --sauce.dislikes
         sauce.usersDisliked = usersDisliked.filter((id) => id !== userId)
     }
-    console.log ( "reset apres dislike ",sauce )
+    console.log ( "reset apres like ou dislike ",sauce )
     return sauce 
 }
 
