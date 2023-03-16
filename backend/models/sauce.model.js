@@ -9,10 +9,10 @@ const sauceSchema = new mongoose.Schema({
     mainPepper : String, 
     imageUrl : String, 
     heat : Number, 
-    likes : Number, 
-    dislikes : Number, 
-    usersLiked : Array,
-    usersDisliked: Array
+    likes : [Number], 
+    dislikes : [Number], 
+    usersLiked : [String],
+    usersDisliked: [String]
 })
 
 /* on cree un modele pour les utilisateurs */

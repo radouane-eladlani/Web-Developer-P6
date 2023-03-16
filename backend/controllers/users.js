@@ -27,11 +27,9 @@ async function loginUtilisateur(req, res) {
         /* on compare le mot de passe avec le mot de passe hacher */
         const estPasswordOk = await bcrypt.compare(password, utilisateur.password)
         if (estPasswordOk) {
-            console.log("Mot de passe correct");
             const token = creerToken(email)
             return res.status(200).send({ userId: utilisateur._id, token: token, message: "connexion réussie" })
         } else {
-            console.log("Mot de passe incorrect");
             return res.status(401).send({ message: "mot de passe échoué" })
         }
     } catch (err) {

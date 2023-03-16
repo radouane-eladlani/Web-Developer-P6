@@ -1,8 +1,9 @@
 const {app, express} = require("./server")
+const {sauceRouter} = require("./routers/sauce.router")
+const {authRouter} = require("./routers/auth.router")
 const port = 3000
 const mongoose = require("mongoose")
 const path = require("path")
-
 
 const password = process.env.PASSWORD
 const nomUtilisateur = process.env.NOMUTILISATEUR
@@ -12,22 +13,8 @@ mongoose.connect(uri).then(() =>
 .catch((err) => 
     console.log("Erreur de connexion:", err))
 
-/* on importe la fonction creerUtilisateur */
-const {creerUtilisateur, loginUtilisateur} = require("./controllers/users")
-const {creerSauce, recupererSauces, recupererIdSauce} = require("./controllers/sauces")
-
-/* on importe la fonction authentifierUser pour verifier le token */
-const {upload} = require("./middleware/multer")
-const {authentifierUser} = require("./middleware/auth")
-
-/* on utilise la methode post avec la route "/api/auth/signup" 
-et on passe une fonction qui prend en parametre req et res 
-pour ajouter l'utilisateur a la base de donnees */ 
-app.post("/api/auth/signup", creerUtilisateur)
-app.post ("/api/auth/login", loginUtilisateur)
-app.get("/api/sauces", authentifierUser, recupererSauces)
-app.post("/api/sauces",authentifierUser,upload.single("image"), creerSauce)
-app.get("/api/sauces/:id", authentifierUser, recupererIdSauce)
+app.use("/api/sauces", sauceRouter)
+app.use("/api/auth", authRouter)
 
 /* l'application va reagir a la route "/" et va excuter la fonction */
 app.get("/", (req, res) => 
