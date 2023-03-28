@@ -1,7 +1,8 @@
 
 /* on importe la fonction creerUtilisateur et loginUtilisateur */
 const {creerUtilisateur, loginUtilisateur} = require("../controllers/users")
-
+/*  creer des routes ensuite on exporte 
+authRouter et on export dans le fichier index.js */
 const express = require("express");
 const authRouter = express.Router();
 
