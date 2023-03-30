@@ -20,7 +20,6 @@ function recupererSauceFindById(req, res) {
 /* on cree une fonction pour que au click sur une sauce on puisse 
 recuperer l'id de la sauce */
 function recupererSauceAvecId(req, res) {
-    console.log(req.params.id);
     /*on utilise recupererSauceFindById pour recuperer une sauce avec son id dans la base de donnees*/
     return recupererSauceFindById(req, res)
         /* on utilise then pour envoyer la fonction status404ou200 
@@ -29,37 +28,49 @@ function recupererSauceAvecId(req, res) {
         /* on utilise catch avec la fonction  si il y a une erreur 404 */
         .catch((err) => status404ou200(err))
 }
+/* 
+on creer la fonction pour savoir si le userId est different de l'userId de la sauce */
+async function possibiliteDeModifierOuSupprimer(sauceId, userId) {
 
-async function possibiliteDeModifierOuSupprimer(userId, sauceId, res) {
-    /*on utilise await pour recuperer la sauce avec son id dans la base de donnees*/
-    const result = await Sauce.findById(sauceId).then(donnee => {
-        return donnee;
-    });
-    /*retourne le userId de la sauce est egal au userId de la requete true ou 
-    false il est pas egale donc on renvoie une erreur 403*/
-    return result.userId === userId ? true : false;
+    try {
+        /* on utilise await pour attendre que la sauce soit trouvee */
+        const result = await Sauce.findById(sauceId);
+        /* on utilise return pour retourner le resultat, userId egale stricte a  
+        l'userId de la sauce */
+        return result.userId === userId;
+
+    }
+    /*si erreur on return false */
+     catch (err) {
+        return false;
+    }
 }
 
-/* on cree une fonction pour que au click sur une sauce on puisse la supprimer de la base de données*/
 async function deleteIdSauce(req, res) {
-    /* on utilise req.params.id pour recuperer l'id de la sauce */
-    const sauceId = req.params.id
-    /* on utilise userId pour recuperer l'id de l'utilisateur */
-    const userId = req.body.userId
+    /*on utilise req.params.id pour recuperer l'id de la sauce*/
+    const sauceId = req.params.id;
+    /* si différent de req.auth on return un status 401 avec un message: Non authentifié */
+    if (!req.auth) {
+        return res.status(401).send({ message: 'Non authentifié' });
+    }
     /* on utilise la fonction possibiliteDeModifierOuSupprimer pour verifier si l'utilisateur
     peut supprimer la sauce */
-    const possibiliteDeSupprimer = (await possibiliteDeModifierOuSupprimer(userId, sauceId, res))
+    const possibiliteDeSupprimer = await possibiliteDeModifierOuSupprimer(sauceId, req.auth.authentifierUserId);
     if (!possibiliteDeSupprimer) {
-        return res.status(403).send({ message: 'Impossible de supprimer cette sauce' })
+        return res.status(403).send({ message: 'Impossible de supprimer cette sauce' });
     }
-    /* on utilise findByIdAndDelete pour supprimer une sauce avec son id dans la base de donnees*/
-    Sauce.findByIdAndDelete(sauceId)
-        /* appel a la fonction deleteImageSauce pour supprimer l'image de la sauce */
-        .then(deleteImageSauce)
-        /* on utilise then pour envoyer une reponse c'est a dire la sauce en json */
-        .then((sauce) => res.send({ message: sauce }))
-        /* on utilise catch si il y a une erreur interne */
-        .catch((err) => res.status(500).send({ message: err }))
+    try {
+        /* on utilise findByIdAndDelete pour supprimer la sauce avec son id dans la base de donnees*/
+        const sauce = await Sauce.findByIdAndDelete(sauceId);
+        /* on utilise deleteImageSauce pour supprimer l'image de la base de donnees et du dossier images*/
+        await deleteImageSauce(sauce);
+        /* on utilise send pour envoyer une reponse c'est a dire la sauce en json */
+        res.send({ message: sauce });
+    } 
+    /* si erreur interne on return un status 500 avec un message: err */
+    catch (err) {
+        res.status(500).send({ message: err });
+    }
 }
 /* on creer la fonction pour supprimer l'image de la base de donnees et du dossier images*/
 function deleteImageSauce(sauce) {
@@ -80,11 +91,9 @@ function deleteImageSauce(sauce) {
 async function modifierSauce(req, res) {
     /* on utilise req.params.id pour recuperer l'id de la sauce */
     const sauceId = req.params.id
-    /* on utilise userId pour recuperer l'id de l'utilisateur */
-    const userId = req.body.userId
     /* on utilise la fonction possibiliteDeModifierOuSupprimer pour verifier si l'utilisateur
     peut modifier la sauce */
-    const possibiliteDeModifier = (await possibiliteDeModifierOuSupprimer(userId, sauceId, res))
+    const possibiliteDeModifier = (await possibiliteDeModifierOuSupprimer( sauceId, req.auth.authentifierUserId))
     if (!possibiliteDeModifier) {
         return res.status(403).send({ message: 'Impossible de modifier cette sauce' })
     }
@@ -231,7 +240,6 @@ function incrementLikeOuDisLike(sauce, userId, like) {
         sauce.usersDisliked.push(userId)
         ++sauce.dislikes
     }
-    console.log("increment like", sauce)
     /* on return la sauce avec le like ou dislike incrementer*/
     return sauce
 }
@@ -261,7 +269,6 @@ function resetLike(sauce, userId, res) {
         --sauce.dislikes
         sauce.usersDisliked = usersDisliked.filter((id) => id !== userId)
     }
-    console.log("reset apres like ou dislike ", sauce)
     return sauce
 }
 

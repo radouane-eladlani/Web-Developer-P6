@@ -17,11 +17,12 @@ function authentifierUser(req, res, next) {
     /* on utilise try catch pour verifier le token avec jwt.verify */
     try {
         const decodedToken = jwt.verify(token, `${process.env.JWT_PASSWORD}`)
+        /* on recupere l'id de l'utilisateur dans le token */
         const userId = decodedToken.userId
-        /* on verifie si le userId de la requete est egale au userId du token */
-        if (req.body.userId && req.body.userId !== userId) {
-            throw "erreur identification userId"
-        }
+        /* on ajoute l'id de l'utilisateur dans la requete */
+    req.auth = {
+        authentifierUserId : userId
+    };
     }
     /* si erreur on return un status 403 avec un message: Accéder au compte non autorisé */
     catch (err) {
@@ -30,5 +31,6 @@ function authentifierUser(req, res, next) {
     /* on utilise next pour passer a la fonction suivante */
     next()
 }
+
 
 module.exports = { authentifierUser }
